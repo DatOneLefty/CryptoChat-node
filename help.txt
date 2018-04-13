@@ -1,0 +1,8 @@
+-g --from-globals   global config file (makes running easier)
+-c --config         keys file to run from
+-y --you            your address (http://localhost:55555)
+-n --new            generate new configuration
+-x --node           node file
+-f --force          force master node
+-p --port           running port
+-w --web            web control port

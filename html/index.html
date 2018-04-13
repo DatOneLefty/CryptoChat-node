@@ -1,0 +1,171 @@
+<style>
+
+body {
+  padding: 0;
+  margin: 0;
+}
+nav {
+  height: 10%;
+}
+table {
+  border-spacing: 0;
+  width:100%;
+  height: 100%;
+
+}
+
+td {
+  border: 0;
+}
+
+
+
+.s1 {
+  float: left;
+  height: 100%;
+  width: 15%;
+  background: lightgray;
+  overflow-x: scroll;
+}
+
+.s2 {
+  float: left;
+  height: 100%;
+
+  width: 70%;
+}
+
+.s3 {
+  float: left;
+  height: 100%;
+
+  width: 15%;
+  background: lightgray;
+}
+
+#t {
+  height: 5%;
+}
+
+.enterbox {
+  position: absolute;
+              bottom: 0;
+              width: 70%;
+              height: 50px;
+              background: gray;
+}
+
+#messages {
+  overflow-y: scroll;
+  height: calc(100% - 50px);
+}
+
+ul {
+  margin: 0;
+}
+
+.read {
+  border: none;
+  background: none;
+  color: gray;
+  font-size: 100%;
+}
+
+  .unread {
+border: none;
+background: none;
+color: black;
+font-size: 100%;
+
+  }
+</style>
+<div class='s1'><h2>Channels</h2><div id='channels'></div></div>
+<div class='s2'>
+<div id='messages'></div>
+
+
+
+  <div class='enterbox'>
+    <input id='text'>
+    <input id='channel'>
+    <button onclick='send()'>Send</button>
+  </div>
+</div>
+<div class='s3'><h2>Online</h2><div id='io_you'></div></div>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+
+function alog(c, f, m) {
+  document.getElementById("messages").innerHTML += "<b><font color='red'>[" + c + "] </font>" + f + "</b>: " + m + "<br>";
+
+  var elem = document.getElementById('messages');
+elem.scrollTop = elem.scrollHeight;
+}
+function send() {
+  if (document.getElementById("channel").value == "") {
+    c = "global"
+  } else {
+    c = document.getElementById("channel").value;
+  }
+  socket.emit("send", ["password123", document.getElementById("text").value, c])
+}
+  var socket = io();
+
+  socket.on("clientsonline", function(c) {
+    document.getElementById("io_you").innerHTML = "";
+    c.forEach(function(n) {
+      document.getElementById("io_you").innerHTML += "<li>" + n + "</li>";
+    })
+  })
+  var id = 0;
+  socket.on("info", function(res) {
+    if (res == 0) {
+      alert("incorrect password!")
+    } else {
+      document.getElementById("io_you").innerHTML = res;
+      id = res;
+    }
+  });
+
+
+  function showChannel(c) {
+    channelC = c;
+    document.getElementById("messages").innerHTML = "";
+
+    messageControl[c].forEach(function(x) {
+      alog(c, x[0], x[1]);
+    });
+    reads[c] = false;
+    updateList();
+  }
+  var channelC = "global";
+function updateList() {
+  document.getElementById("channels").innerHTML = "";
+  for (channel in messageControl) {
+    if (reads[channel] == false) {
+      document.getElementById("channels").innerHTML += '<ul style="list-style-type:none">' + "<li><button class='read' onclick='showChannel(" + '"' + channel + '"' + ")'>" + channel + "</button></li></ul>";
+    } else {
+    document.getElementById("channels").innerHTML += '<ul style="list-style-type:disc">' + "<li><button class='unread' onclick='showChannel(" + '"' + channel + '"' + ")'>" + channel + "</button></li></ul>";
+  }
+  }
+}
+
+var reads = new Object();
+var messageControl = new Object();
+  socket.on("newmessage", function(m) {
+    if (messageControl[m[0]] == null) {
+      messageControl[m[0]] = [[m[1], m[2]]]
+      reads[m[0]] = true;
+    } else {
+      messageControl[m[0]].push([m[1], m[2]]);
+      reads[m[0]] = true;
+    }
+    if (channelC == m[0]) {
+    reads[m[0]] = false;
+    alog(m[0], m[1], m[2]);
+  }
+  updateList()
+
+  });
+  socket.emit("ready", "password123");
+</script>
