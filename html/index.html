@@ -1,3 +1,6 @@
+<head>
+  <title>CryptoChat GUI</title>
+</head>
 <style>
 
 body {
@@ -78,16 +81,23 @@ color: black;
 font-size: 100%;
 
   }
+  #text {
+    width: 100%;
+    background-color: lightgray;
+    height: 100%;
+    color: black;
+    font-size: 100%;
+    border: 5px solid gray;
+  }
 </style>
-<div class='s1'><h2>Channels</h2><div id='channels'></div></div>
+<div class='s1'>CryptoChat GUI Alpha<h2>Channels</h2><div id='channels'></div></div>
 <div class='s2'>
 <div id='messages'></div>
 
 
 
   <div class='enterbox'>
-    <input id='text'>
-    <input id='channel'>
+    <input id='text' placeholder='' onkeydown="checkif(this)">
     <button onclick='send()'>Send</button>
   </div>
 </div>
@@ -95,6 +105,21 @@ font-size: 100%;
 <script src="/socket.io/socket.io.js"></script>
 <script>
 
+
+function sanitize(str) {
+str = str.replace("<", "&#60;");
+str = str.replace(">", "&#62;");
+str = str.replace(/[^A-Za-z 0-9 \.,\?""!@#\$%\^&\*\(\)-_=\+;:<>\/\\\|\}\{\[\]`~]*/g, '')
+return str;
+}
+
+
+function checkif(ele) {
+    if(event.key === 'Enter' && ele.value != "") {
+        send()
+        ele.value = "";
+    }
+}
 function alog(c, f, m) {
   document.getElementById("messages").innerHTML += "<b><font color='red'>[" + c + "] </font>" + f + "</b>: " + m + "<br>";
 
@@ -102,12 +127,9 @@ function alog(c, f, m) {
 elem.scrollTop = elem.scrollHeight;
 }
 function send() {
-  if (document.getElementById("channel").value == "") {
-    c = "global"
-  } else {
-    c = document.getElementById("channel").value;
-  }
-  socket.emit("send", ["password123", document.getElementById("text").value, c])
+
+  alog(channelC, "you",document.getElementById("text").value);
+  socket.emit("send", ["password123", document.getElementById("text").value, channelC])
 }
   var socket = io();
 
@@ -124,6 +146,7 @@ function send() {
     } else {
       document.getElementById("io_you").innerHTML = res;
       id = res;
+      updateList();
     }
   });
 
@@ -131,12 +154,29 @@ function send() {
   function showChannel(c) {
     channelC = c;
     document.getElementById("messages").innerHTML = "";
-
+document.getElementById("text").placeholder = "Sending in " + c;
     messageControl[c].forEach(function(x) {
       alog(c, x[0], x[1]);
     });
     reads[c] = false;
     updateList();
+  }
+
+  function newChannel() {
+    var nc = prompt("channel name");
+
+
+    if (messageControl[nc] == null) {
+      messageControl[nc] = []
+      reads[nc] = true;
+    } else {
+      reads[nc] = true;
+    }
+
+    alog(nc, "browser", "created channel <font color='red'>Only you see this channel until a message is sent</font>");
+    showChannel(nc);
+  updateList();
+
   }
   var channelC = "global";
 function updateList() {
@@ -148,11 +188,21 @@ function updateList() {
     document.getElementById("channels").innerHTML += '<ul style="list-style-type:disc">' + "<li><button class='unread' onclick='showChannel(" + '"' + channel + '"' + ")'>" + channel + "</button></li></ul>";
   }
   }
+  document.getElementById("channels").innerHTML += '<ul style="list-style-type:none">' + "<li><button class='read' onclick='newChannel()'>New Channel</button></li></ul>"
 }
 
 var reads = new Object();
 var messageControl = new Object();
+messageControl["global"] = []
+reads["global"] = false
+updateList();
+showChannel("global");
+alog("global", "browser", "welcome to the chat! <font color='red'>only you can see this message</font>");
   socket.on("newmessage", function(m) {
+    m[0] = sanitize(m[0]);
+    m[1] = sanitize(m[1]);
+    m[2] = sanitize(m[2]);
+
     if (messageControl[m[0]] == null) {
       messageControl[m[0]] = [[m[1], m[2]]]
       reads[m[0]] = true;

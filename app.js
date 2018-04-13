@@ -90,14 +90,14 @@ if (arg == "--you" || arg == "-y") {
 if (local == false) {
   const publicIp = require('public-ip');
   publicIp.v4().then(ip => {
-    you = ip + ":" + port;
+    you = "http://" + ip + ":" + port;
     console.log("you are known as " + you);
 
 });
 } else {
   if (local != "none") {
     const internalIp = require('internal-ip');
-  you = internalIp.v4.sync() + ":" + port;
+  you = "http://" + internalIp.v4.sync() + ":" + port;
   console.log("you are known as " + you);
 
 }
@@ -187,18 +187,23 @@ client.saveNodes = function(node) {
 }
 
 
+client.checkNode = function(n,s) {
+  var socket = require('socket.io-client')(n);
+  socket.on('connect', function(){
+    socket.on("roundtrip", function(r) {
+      STClients.push(n);
+      if (s == false) {
+      logger.log(n + " is online");
+    }
+    });
+    socket.emit("roundtrip", you);
+  });
+}
+
 client.checkForNodes = function() {
   a = 0;
   nodes.forEach(function(n) {
-    var socket = require('socket.io-client')(n);
-    socket.on('connect', function(){
-      socket.on("roundtrip", function(r) {
-        STClients.push(n);
-        logger.log(n + " is online");
-
-      });
-      socket.emit("roundtrip", keys.username.name);
-    });
+client.checkNode(n, false);
   });
 }
 
@@ -245,6 +250,9 @@ io.on('connection', function(socket){
 
   socket.on("roundtrip", function(res) {
     socket.emit("roundtrip", res);
+    if (STClients.indexOf(res) == -1) {
+    client.checkNode(res, false);
+  }
   })
 
   socket.on("message", function(m) {
