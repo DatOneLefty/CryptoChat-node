@@ -55,6 +55,7 @@ if (arg == "--config" || arg == "-c") {
 }
 if (arg == "--you" || arg == "-y") {
   you = process.argv[ac];
+  local = "none"
 }
   if(arg == "-n"  || arg == "--new") {
     logger.log("Generating new 1024 bit key");
