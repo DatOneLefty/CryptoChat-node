@@ -1,5 +1,5 @@
-# CryptoChat-node
-Node.js P2P Chat with a web gui
+# CryptoChat (proof of concept)
+Node.js P2P Chat with a web GUI
 
 
 ## Installation
@@ -27,8 +27,9 @@ This command will generate your username and your public and private keys
 3. if you want to connect to a global network, you need to open the port for the server on your router, the default is `55555`
 3. run `node app.js` to start the app, the listener, and the web ui
 *if you are running a local node for a local network, run with the `-l` option*
+4. To access the web gui, go to `http://localhost:8080`
 
-##todo
+## TODO
 - [ ] anti-spam
 - [ ] better web UI
 - [ ] web ui password
@@ -39,3 +40,8 @@ This command will generate your username and your public and private keys
 - [ ] maximum message content
 - [ ] DMs
 - [ ] a way to pass more than just strings to allow for more options
+
+## Credit
+DatOneLefty
+Bitcoin: `3JSDL3ZNnkA2kUXb29mtQvHNJb87mkTmyC`
+Discord: `MozzarellaFlameDoggo#8302`
