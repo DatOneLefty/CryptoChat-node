@@ -110,8 +110,7 @@ if (nodes == null) {
 }
 
 if (nodes.length == 0) {
-  console.error("Fatal Error: No nodes. To temporarly run from a single node, run with argument --node [ip]:[port]");
-  process.exit(1);
+  console.error("WARNING: you have no nodes in your nodes.json file, you will not have a node unless you add one or someone connects to you!");
 }
 var keys = JSON.parse(fs.readFileSync(configFile));
 
@@ -191,9 +190,16 @@ client.checkNode = function(n,s) {
   var socket = require('socket.io-client')(n);
   socket.on('connect', function(){
     socket.on("roundtrip", function(r) {
+      if (STClients.indexOf(n) != 0) {
       STClients.push(n);
       if (s == false) {
       logger.log(n + " is online");
+    }
+      if (s == true) {
+        client.saveNodes([n]);
+      }
+    } else {
+      logger.log(n + " attempted to double connect");
     }
     });
     socket.emit("roundtrip", you);
@@ -251,7 +257,7 @@ io.on('connection', function(socket){
   socket.on("roundtrip", function(res) {
     socket.emit("roundtrip", res);
     if (STClients.indexOf(res) == -1) {
-    client.checkNode(res, false);
+    client.checkNode(res, true);
   }
   })
 
@@ -314,7 +320,7 @@ appw.get('/', function(req, res){
 
 
 httpw.listen(webport, function(){
-  logger.log("control panel started on port " + webport);
+  logger.log("Web GUI started on port " + webport);
 });
 
 
