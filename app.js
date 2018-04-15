@@ -18,7 +18,7 @@ var configFile = "keys.json";
 
 var port = 55555;
 
-var nodes;
+var nodes = [];
 var STClients = []
 
 var you;
@@ -26,6 +26,7 @@ var ac = 0;
 var webport = 8080;
 var local = false;
 var RFNode = "nodes.json";
+var nodeforcing = false;
 process.argv.forEach(function(arg) {
 ac++;
 
@@ -77,6 +78,7 @@ if (arg == "--you" || arg == "-y") {
 
   if (arg == "--force" || arg == "-f") {
     nodes.push(process.argv[ac]);
+    nodeforcing = true;
     console.warn("the system will save the entered node's NodeChain")
   }
   if (arg == "-p" || arg == "--port") {
@@ -178,14 +180,20 @@ client.getOtherNodes = function() {
   });
 }
 
-client.saveNodes = function(node) {
+client.saveNodes = function(node, read = true) {
+  if (read == true) {
   logger.log("adding " + node.length + " nodes");
+}
   node.forEach(function(n) {
     nodes.push(n);
   });
-  fs.writeFileSync(RFNode, JSON.stringify(node));
+  fs.writeFileSync(RFNode, JSON.stringify(nodes));
 }
 
+if (nodeforcing == true) {
+  client.saveNodes([], false);
+  nodeforcing = false;
+}
 
 client.checkNode = function(n,s) {
   var socket = require('socket.io-client')(n);
@@ -194,7 +202,12 @@ client.checkNode = function(n,s) {
       if (STClients.indexOf(n) != 0) {
       STClients.push(n);
       if (s == false) {
+        if (nodes.indexOf(n) == -1) {
+          console.log("new node found at " + n);
+          client.saveNodes([n]);
+        } else {
       logger.log(n + " is online");
+    }
     }
       if (s == true) {
         console.log("new node found at " + n);
