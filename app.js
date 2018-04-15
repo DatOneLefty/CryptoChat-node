@@ -25,6 +25,7 @@ var you;
 var ac = 0;
 var webport = 8080;
 var local = false;
+var RFNode = "nodes.json";
 process.argv.forEach(function(arg) {
 ac++;
 
@@ -71,7 +72,7 @@ if (arg == "--you" || arg == "-y") {
   }
 
   if (arg == "-x" || arg == "--node") {
-    nodes = JSON.parse(fs.readFileSync(process.argv[ac]));
+    RFNode = process.argv[ac]
   }
 
   if (arg == "--force" || arg == "-f") {
@@ -106,7 +107,7 @@ if (local == false) {
 
 
 if (nodes == null) {
-  nodes = JSON.parse(fs.readFileSync("nodes.json"));
+  nodes = JSON.parse(fs.readFileSync(RFNode));
 }
 
 if (nodes.length == 0) {
@@ -182,7 +183,7 @@ client.saveNodes = function(node) {
   node.forEach(function(n) {
     nodes.push(n);
   });
-  fs.writeFileSync("nodes.json", JSON.stringify(node));
+  fs.writeFileSync(RFNode, JSON.stringify(node));
 }
 
 
@@ -196,10 +197,9 @@ client.checkNode = function(n,s) {
       logger.log(n + " is online");
     }
       if (s == true) {
+        console.log("new node found at " + n);
         client.saveNodes([n]);
       }
-    } else {
-      logger.log(n + " attempted to double connect");
     }
     });
     socket.emit("roundtrip", you);
